@@ -1,5 +1,6 @@
 import tensorflow as tf
-from keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import TensorBoard
+import os
 
 # use with Tensorflow version 2+
 class ModifiedTensorBoard(TensorBoard):
@@ -11,9 +12,21 @@ class ModifiedTensorBoard(TensorBoard):
         self.writer = tf.summary.create_file_writer(self.log_dir)
         self._log_write_dir = self.log_dir
 
+        self._train_dir = os.path.join(self._log_write_dir, 'train')
+        self._train_step = 0
+        self._val_dir = os.path.join(self._log_write_dir, 'validation')
+        self._val_step = 0 # Initialize with a default value
+        self._should_write_train_graph = False
+
     # Overriding this method to stop creating default log writer
     def set_model(self, model):
-        pass
+        # pass
+
+        self.model = model
+        # Update _train_step with the model's current training step counter
+        self._train_step = self.model._train_counter
+        # Similarly, update _val_step if needed
+        self._val_step = self.model._test_counter
 
     # Overrided, saves logs with our step number
     # (otherwise every .fit() will start writing from 0th step)
